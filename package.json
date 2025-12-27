@@ -1,6 +1,6 @@
 {
   "name": "@testledger/cli",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "Test orchestration CLI for Test Ledger - skip flaky tests, parallel execution, and smart load balancing",
   "type": "module",
   "main": "dist/index.js",
