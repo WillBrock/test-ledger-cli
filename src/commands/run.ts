@@ -15,6 +15,9 @@ interface RunOptions {
 	includeQuarantined?: boolean;
 	framework?: string;
 	dryRun?: boolean;
+	minFlakyCount?: string;
+	minFlakyPercent?: string;
+	minTotalRuns?: string;
 }
 
 export async function runCommand(
@@ -80,7 +83,10 @@ export async function runCommand(
 		const orchConfig = await client.getOrchestrationConfig(projectId, {
 			version: options.version,
 			includeFlaky: flakyMode !== 'fail',
-			includeQuarantined: !options.includeQuarantined
+			includeQuarantined: !options.includeQuarantined,
+			minFlakyCount: options.minFlakyCount ? parseInt(options.minFlakyCount, 10) : undefined,
+			minFlakyPercent: options.minFlakyPercent ? parseFloat(options.minFlakyPercent) : undefined,
+			minTotalRuns: options.minTotalRuns ? parseInt(options.minTotalRuns, 10) : undefined
 		});
 
 		spinner.succeed('Fetched test configuration');

@@ -56,6 +56,9 @@ export class APIClient {
 			version?: string;
 			includeFlaky?: boolean;
 			includeQuarantined?: boolean;
+			minFlakyCount?: number;
+			minFlakyPercent?: number;
+			minTotalRuns?: number;
 		} = {}
 	): Promise<OrchestrationConfigResponse> {
 		const params = new URLSearchParams({
@@ -70,6 +73,15 @@ export class APIClient {
 		}
 		if (options.includeQuarantined !== undefined) {
 			params.append('include_quarantined', options.includeQuarantined.toString());
+		}
+		if (options.minFlakyCount !== undefined) {
+			params.append('min_flaky_count', options.minFlakyCount.toString());
+		}
+		if (options.minFlakyPercent !== undefined) {
+			params.append('min_flaky_percent', options.minFlakyPercent.toString());
+		}
+		if (options.minTotalRuns !== undefined) {
+			params.append('min_total_runs', options.minTotalRuns.toString());
 		}
 
 		return this.request<OrchestrationConfigResponse>(

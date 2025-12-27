@@ -33,6 +33,9 @@ program
 	.description('Show project status (flaky tests, quarantined tests)')
 	.option('-p, --project-id <id>', 'Project ID')
 	.option('-v, --version <version>', 'Filter by app version')
+	.option('--min-flaky-count <count>', 'Minimum flaky occurrences to be considered flaky (default: 3)')
+	.option('--min-flaky-percent <percent>', 'Minimum percentage of runs that are flaky (default: 20)')
+	.option('--min-total-runs <runs>', 'Minimum runs for statistical significance (default: 5)')
 	.action(statusCommand);
 
 // testledger run [-- command]
@@ -47,6 +50,9 @@ program
 	.option('--include-quarantined', 'Run quarantined tests anyway', false)
 	.option('--framework <framework>', 'Force framework: wdio, playwright, cypress')
 	.option('--dry-run', 'Show what would be excluded without running tests', false)
+	.option('--min-flaky-count <count>', 'Minimum flaky occurrences to be considered flaky (default: 3)')
+	.option('--min-flaky-percent <percent>', 'Minimum percentage of runs that are flaky (default: 20)')
+	.option('--min-total-runs <runs>', 'Minimum runs for statistical significance (default: 5)')
 	.allowUnknownOption(true)
 	.action(runCommand);
 

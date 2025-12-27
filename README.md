@@ -12,7 +12,7 @@ npm install -g @testledger/cli
 
 ```bash
 # Login with your Test Ledger credentials
-testledger login --username your@email.com --api-token YOUR_API_TOKEN
+testledger login --api-token YOUR_API_TOKEN
 
 # Check project status (flaky tests, quarantined tests)
 testledger status --project-id 123
@@ -37,11 +37,10 @@ testledger run --project-id 123 -- npx wdio run wdio.conf.js
 Authenticate with Test Ledger.
 
 ```bash
-testledger login --username your@email.com --api-token YOUR_API_TOKEN
+testledger login --api-token YOUR_API_TOKEN
 ```
 
 Options:
-- `-u, --username <email>` - Your Test Ledger email
 - `-t, --api-token <token>` - Your API token
 - `--api-url <url>` - Custom API URL (default: https://app-api.testledger.dev)
 
@@ -51,11 +50,17 @@ Show project status including flaky and quarantined tests.
 
 ```bash
 testledger status --project-id 123
+
+# With custom flaky thresholds
+testledger status --project-id 123 --min-flaky-percent 30 --min-flaky-count 5
 ```
 
 Options:
 - `-p, --project-id <id>` - Project ID
 - `-v, --version <version>` - Filter by app version
+- `--min-flaky-count <count>` - Minimum flaky occurrences to be considered flaky (default: 3)
+- `--min-flaky-percent <percent>` - Minimum percentage of runs that are flaky (default: 20)
+- `--min-total-runs <runs>` - Minimum runs for statistical significance (default: 5)
 
 ### `testledger run`
 
@@ -84,6 +89,9 @@ Options:
 - `--include-quarantined` - Run quarantined tests anyway
 - `--framework <framework>` - Force framework: `wdio`, `playwright`, `cypress`
 - `--dry-run` - Show what would be excluded without running tests
+- `--min-flaky-count <count>` - Minimum flaky occurrences to be considered flaky (default: 3)
+- `--min-flaky-percent <percent>` - Minimum percentage of runs that are flaky (default: 20)
+- `--min-total-runs <runs>` - Minimum runs for statistical significance (default: 5)
 
 ## Parallel Execution
 
@@ -111,6 +119,9 @@ jobs:
     strategy:
       matrix:
         shard: [1, 2, 3]
+    env:
+      TESTLEDGER_API_TOKEN: ${{ secrets.TESTLEDGER_TOKEN }}
+      TESTLEDGER_PROJECT_ID: 123
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -119,9 +130,7 @@ jobs:
       - run: npm ci
       - run: npm install -g @testledger/cli
       - name: Run tests
-        run: |
-          testledger login --username ${{ secrets.TESTLEDGER_USER }} --api-token ${{ secrets.TESTLEDGER_TOKEN }}
-          testledger run --project-id 123 -- npx wdio run wdio.conf.js --shard ${{ matrix.shard }}/3
+        run: testledger run -- npx wdio run wdio.conf.js --shard ${{ matrix.shard }}/3
 ```
 
 ## Framework Support
@@ -170,6 +179,9 @@ Credentials are stored in `~/.config/testledger-cli/config.json` (Linux/Mac) or 
 
 ## Environment Variables
 
+- `TESTLEDGER_API_TOKEN` - API token (alternative to `--api-token` or `testledger login`)
+- `TESTLEDGER_PROJECT_ID` - Default project ID (alternative to `--project-id`)
+- `TESTLEDGER_API_URL` - Custom API URL
 - `DEBUG=1` - Enable debug logging
 
 ## License

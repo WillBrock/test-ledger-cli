@@ -6,6 +6,9 @@ import chalk from 'chalk';
 interface StatusOptions {
 	projectId?: string;
 	version?: string;
+	minFlakyCount?: string;
+	minFlakyPercent?: string;
+	minTotalRuns?: string;
 }
 
 export async function statusCommand(options: StatusOptions): Promise<void> {
@@ -30,7 +33,10 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
 	try {
 		const client = new APIClient();
 		const response = await client.getOrchestrationConfig(projectId, {
-			version: options.version
+			version: options.version,
+			minFlakyCount: options.minFlakyCount ? parseInt(options.minFlakyCount, 10) : undefined,
+			minFlakyPercent: options.minFlakyPercent ? parseFloat(options.minFlakyPercent) : undefined,
+			minTotalRuns: options.minTotalRuns ? parseInt(options.minTotalRuns, 10) : undefined
 		});
 
 		spinner.succeed('Fetched orchestration config');
