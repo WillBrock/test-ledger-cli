@@ -13,7 +13,8 @@
     "dev": "tsc --watch",
     "test": "jest",
     "lint": "eslint src/",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "release": "release-it --github.release"
   },
   "keywords": [
     "test",
@@ -38,6 +39,7 @@
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
+    "release-it": "^17.10.0",
     "typescript": "^5.7.2"
   },
   "engines": {
