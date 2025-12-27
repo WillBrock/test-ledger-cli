@@ -23,7 +23,6 @@ program
 program
 	.command('login')
 	.description('Authenticate with Test Ledger')
-	.option('-u, --username <email>', 'Your Test Ledger email')
 	.option('-t, --api-token <token>', 'Your API token')
 	.option('--api-url <url>', 'Custom API URL (default: https://app-api.testledger.dev)')
 	.action(loginCommand);
@@ -43,7 +42,6 @@ program
 	.option('-p, --project-id <id>', 'Project ID')
 	.option('-v, --version <version>', 'App version')
 	.option('-t, --api-token <token>', 'API token (or use TESTLEDGER_API_TOKEN env var)')
-	.option('-u, --username <email>', 'Username/email (or use TESTLEDGER_USERNAME env var)')
 	.option('--api-url <url>', 'API URL (default: https://app-api.testledger.dev)')
 	.option('--flaky-mode <mode>', 'How to handle flaky tests: skip, warn, fail (default: skip)', 'skip')
 	.option('--include-quarantined', 'Run quarantined tests anyway', false)

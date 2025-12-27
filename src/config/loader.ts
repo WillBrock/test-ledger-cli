@@ -5,7 +5,6 @@ const DEFAULT_API_URL = 'https://app-api.testledger.dev';
 
 interface StoredConfig {
 	apiUrl?: string;
-	username?: string;
 	apiToken?: string;
 	projectId?: number;
 }
@@ -16,9 +15,6 @@ const config = new Conf<StoredConfig>({
 		apiUrl: {
 			type: 'string',
 			default: DEFAULT_API_URL
-		},
-		username: {
-			type: 'string'
 		},
 		apiToken: {
 			type: 'string'
@@ -31,32 +27,28 @@ const config = new Conf<StoredConfig>({
 
 export function getConfig(): TestLedgerConfig | null {
 	// Check environment variables first (for CI environments)
-	const envUsername = process.env.TESTLEDGER_USERNAME;
 	const envApiToken = process.env.TESTLEDGER_API_TOKEN;
 	const envProjectId = process.env.TESTLEDGER_PROJECT_ID;
 	const envApiUrl = process.env.TESTLEDGER_API_URL;
 
-	// If env vars are set, use them
-	if (envUsername && envApiToken) {
+	// If env var is set, use it
+	if (envApiToken) {
 		return {
 			apiUrl: envApiUrl || DEFAULT_API_URL,
-			username: envUsername,
 			apiToken: envApiToken,
 			projectId: envProjectId ? parseInt(envProjectId, 10) : undefined
 		};
 	}
 
 	// Fall back to stored config
-	const username = config.get('username');
 	const apiToken = config.get('apiToken');
 
-	if (!username || !apiToken) {
+	if (!apiToken) {
 		return null;
 	}
 
 	return {
 		apiUrl: config.get('apiUrl') || DEFAULT_API_URL,
-		username,
 		apiToken,
 		projectId: config.get('projectId')
 	};
@@ -64,7 +56,6 @@ export function getConfig(): TestLedgerConfig | null {
 
 export function setConfig(newConfig: Partial<TestLedgerConfig>): void {
 	if (newConfig.apiUrl) config.set('apiUrl', newConfig.apiUrl);
-	if (newConfig.username) config.set('username', newConfig.username);
 	if (newConfig.apiToken) config.set('apiToken', newConfig.apiToken);
 	if (newConfig.projectId) config.set('projectId', newConfig.projectId);
 }
@@ -79,5 +70,5 @@ export function getConfigPath(): string {
 
 export function isAuthenticated(): boolean {
 	const cfg = getConfig();
-	return cfg !== null && !!cfg.username && !!cfg.apiToken;
+	return cfg !== null && !!cfg.apiToken;
 }

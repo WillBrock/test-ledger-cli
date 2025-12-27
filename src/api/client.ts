@@ -5,11 +5,11 @@ export class APIClient {
 	private apiUrl: string;
 	private authHeader: string;
 
-	constructor(apiUrl?: string, username?: string, apiToken?: string) {
-		// If credentials provided directly, use them
-		if (username && apiToken) {
+	constructor(apiUrl?: string, apiToken?: string) {
+		// If token provided directly, use it
+		if (apiToken) {
 			this.apiUrl = apiUrl || 'https://app-api.testledger.dev';
-			this.authHeader = `Basic ${Buffer.from(`${username}:${apiToken}`).toString('base64')}`;
+			this.authHeader = `Bearer ${apiToken}`;
 			return;
 		}
 
@@ -21,7 +21,7 @@ export class APIClient {
 		}
 
 		this.apiUrl = apiUrl || config.apiUrl || 'https://app-api.testledger.dev';
-		this.authHeader = `Basic ${Buffer.from(`${config.username}:${config.apiToken}`).toString('base64')}`;
+		this.authHeader = `Bearer ${config.apiToken}`;
 	}
 
 	private async request<T>(

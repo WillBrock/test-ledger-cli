@@ -3,18 +3,12 @@ import { APIClient } from '../api/client.js';
 import { log, createSpinner } from '../utils/logger.js';
 
 interface LoginOptions {
-	username?: string;
 	apiToken?: string;
 	apiUrl?: string;
 }
 
 export async function loginCommand(options: LoginOptions): Promise<void> {
-	const { username, apiToken, apiUrl } = options;
-
-	if (!username) {
-		log.error('Username is required. Use --username <email>');
-		process.exit(1);
-	}
+	const { apiToken, apiUrl } = options;
 
 	if (!apiToken) {
 		log.error('API token is required. Use --api-token <token>');
@@ -25,7 +19,7 @@ export async function loginCommand(options: LoginOptions): Promise<void> {
 
 	try {
 		// Verify credentials work
-		const client = new APIClient(apiUrl, username, apiToken);
+		const client = new APIClient(apiUrl, apiToken);
 		const valid = await client.verifyCredentials();
 
 		if (!valid) {
@@ -35,7 +29,6 @@ export async function loginCommand(options: LoginOptions): Promise<void> {
 
 		// Store credentials
 		setConfig({
-			username,
 			apiToken,
 			apiUrl: apiUrl || 'https://app-api.testledger.dev'
 		});

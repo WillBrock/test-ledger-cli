@@ -1,6 +1,5 @@
 export interface TestLedgerConfig {
 	apiUrl: string;
-	username: string;
 	apiToken: string;
 	projectId?: number;
 }
