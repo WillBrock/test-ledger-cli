@@ -136,11 +136,33 @@ testledger run --project-id 123 -- npx wdio run wdio.conf.js
 
 ### Playwright (Coming Soon)
 
-Playwright support is planned for a future release.
+The CLI will use `--grep-invert` to exclude tests by pattern.
+
+```bash
+testledger run --project-id 123 -- npx playwright test
+```
 
 ### Cypress (Coming Soon)
 
-Cypress support is planned for a future release.
+The CLI will pass exclusions via the `TESTLEDGER_EXCLUDE` environment variable. Add this to your `cypress.config.js`:
+
+```javascript
+const { defineConfig } = require('cypress');
+
+module.exports = defineConfig({
+  e2e: {
+    excludeSpecPattern: process.env.TESTLEDGER_EXCLUDE
+      ? process.env.TESTLEDGER_EXCLUDE.split(',')
+      : []
+  }
+});
+```
+
+Then run:
+
+```bash
+testledger run --project-id 123 -- npx cypress run
+```
 
 ## Configuration
 
