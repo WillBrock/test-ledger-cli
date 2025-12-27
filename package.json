@@ -1,0 +1,54 @@
+{
+  "name": "@testledger/cli",
+  "version": "1.0.0",
+  "description": "Test orchestration CLI for Test Ledger - skip flaky tests, parallel execution, and smart load balancing",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "testledger": "./bin/testledger.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint src/",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "test",
+    "testing",
+    "orchestration",
+    "parallel",
+    "flaky",
+    "webdriverio",
+    "playwright",
+    "cypress",
+    "ci",
+    "testledger"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0",
+    "commander": "^12.1.0",
+    "conf": "^13.0.1",
+    "glob": "^11.0.0",
+    "ora": "^8.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/testledger/cli.git"
+  },
+  "files": [
+    "dist",
+    "bin"
+  ]
+}
