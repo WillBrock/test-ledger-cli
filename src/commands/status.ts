@@ -36,6 +36,10 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
 		spinner.succeed('Fetched orchestration config');
 		console.log('');
 
+		// Handle missing or malformed response
+		const skipSpecs = response.skip_specs || [];
+		const counts = response.counts || { flaky: 0, quarantined: 0 };
+
 		// Summary
 		console.log(chalk.cyan('Project Status'));
 		console.log(chalk.gray('─'.repeat(40)));
@@ -48,17 +52,17 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
 		// Counts
 		console.log(chalk.cyan('Test Health'));
 		console.log(chalk.gray('─'.repeat(40)));
-		console.log(`  ${chalk.yellow('Flaky tests:')}       ${response.counts.flaky}`);
-		console.log(`  ${chalk.red('Quarantined tests:')} ${response.counts.quarantined}`);
+		console.log(`  ${chalk.yellow('Flaky tests:')}       ${counts.flaky}`);
+		console.log(`  ${chalk.red('Quarantined tests:')} ${counts.quarantined}`);
 		console.log('');
 
 		// List specs
-		if (response.skip_specs.length > 0) {
+		if (skipSpecs.length > 0) {
 			console.log(chalk.cyan('Specs to Skip'));
 			console.log(chalk.gray('─'.repeat(40)));
 
-			const flakySpecs = response.skip_specs.filter(s => s.reason === 'flaky');
-			const quarantinedSpecs = response.skip_specs.filter(s => s.reason === 'quarantined');
+			const flakySpecs = skipSpecs.filter(s => s.reason === 'flaky');
+			const quarantinedSpecs = skipSpecs.filter(s => s.reason === 'quarantined');
 
 			if (flakySpecs.length > 0) {
 				console.log(chalk.yellow('\n  Flaky:'));
