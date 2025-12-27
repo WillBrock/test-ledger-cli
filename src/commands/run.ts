@@ -85,6 +85,10 @@ export async function runCommand(
 
 		spinner.succeed('Fetched test configuration');
 
+		// Handle missing or malformed response
+		const skipSpecs = orchConfig.skip_specs || [];
+		const counts = orchConfig.counts || { flaky: 0, quarantined: 0 };
+
 		// Build exclusions based on flaky mode
 		const exclusions: ExclusionConfig = {
 			specsToSkip: [],
@@ -93,7 +97,7 @@ export async function runCommand(
 		};
 
 		if (flakyMode === 'skip') {
-			const flakySpecs = orchConfig.skip_specs
+			const flakySpecs = skipSpecs
 				.filter(s => s.reason === 'flaky')
 				.map(s => s.spec_file);
 			exclusions.flakySpecs = flakySpecs;
@@ -101,7 +105,7 @@ export async function runCommand(
 
 		// Add quarantined specs (unless --include-quarantined)
 		if (!options.includeQuarantined) {
-			const quarantinedSpecs = orchConfig.skip_specs
+			const quarantinedSpecs = skipSpecs
 				.filter(s => s.reason === 'quarantined')
 				.map(s => s.spec_file);
 			exclusions.quarantinedSpecs = quarantinedSpecs;
@@ -109,9 +113,9 @@ export async function runCommand(
 
 		// Print summary
 		printSkipSummary(
-			orchConfig.counts.flaky,
-			orchConfig.counts.quarantined,
-			orchConfig.skip_specs
+			counts.flaky,
+			counts.quarantined,
+			skipSpecs
 		);
 
 		// Get framework-specific exclude arguments
