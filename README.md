@@ -25,8 +25,10 @@ testledger run --project-id 123 -- npx wdio run wdio.conf.js
 
 - **Skip Flaky Tests**: Automatically skip tests that have been flagged as flaky in Test Ledger
 - **Quarantine Tests**: Skip tests that are quarantined/broken
-- **Multi-Framework**: Supports WebDriverIO, Playwright, and Cypress
+- **WebDriverIO Support**: Full support for WebDriverIO test framework
 - **Flaky Mode Options**: Choose to skip, warn, or fail on flaky tests
+
+> **Note:** Playwright and Cypress support coming soon.
 
 ## Commands
 
@@ -132,35 +134,13 @@ The CLI automatically detects WebDriverIO projects and uses the `--exclude` flag
 testledger run --project-id 123 -- npx wdio run wdio.conf.js
 ```
 
-### Playwright
+### Playwright (Coming Soon)
 
-The CLI uses `--grep-invert` to exclude tests by pattern.
+Playwright support is planned for a future release.
 
-```bash
-testledger run --project-id 123 -- npx playwright test
-```
+### Cypress (Coming Soon)
 
-### Cypress
-
-The CLI passes exclusions via the `TESTLEDGER_EXCLUDE` environment variable. Add this to your `cypress.config.js`:
-
-```javascript
-const { defineConfig } = require('cypress');
-
-module.exports = defineConfig({
-  e2e: {
-    excludeSpecPattern: process.env.TESTLEDGER_EXCLUDE
-      ? process.env.TESTLEDGER_EXCLUDE.split(',')
-      : []
-  }
-});
-```
-
-Then run:
-
-```bash
-testledger run --project-id 123 -- npx cypress run
-```
+Cypress support is planned for a future release.
 
 ## Configuration
 
