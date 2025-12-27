@@ -47,7 +47,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/testledger/cli.git"
+    "url": "https://github.com/WillBrock/test-ledger-cli.git"
   },
   "files": [
     "dist",
