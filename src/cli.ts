@@ -4,6 +4,8 @@ import { loginCommand } from './commands/login.js';
 import { statusCommand } from './commands/status.js';
 import { initCommand } from './commands/init.js';
 
+// CLI setup
+
 const program = new Command();
 
 program
