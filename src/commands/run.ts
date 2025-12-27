@@ -9,6 +9,9 @@ import type { Command } from 'commander';
 interface RunOptions {
 	projectId?: string;
 	version?: string;
+	apiToken?: string;
+	username?: string;
+	apiUrl?: string;
 	flakyMode?: 'skip' | 'warn' | 'fail';
 	includeQuarantined?: boolean;
 	framework?: string;
@@ -19,16 +22,30 @@ export async function runCommand(
 	options: RunOptions,
 	command: Command
 ): Promise<void> {
+	// Check for CLI-provided credentials first
+	const cliUsername = options.username || process.env.TESTLEDGER_USERNAME;
+	const cliApiToken = options.apiToken || process.env.TESTLEDGER_API_TOKEN;
+	const cliApiUrl = options.apiUrl || process.env.TESTLEDGER_API_URL;
+
+	// Get stored config (will also check env vars)
 	const config = getConfig();
 
-	if (!config) {
-		log.error('Not logged in. Run "testledger login" first.');
+	// Determine auth credentials (CLI args > env vars > stored config)
+	const username = cliUsername || config?.username;
+	const apiToken = cliApiToken || config?.apiToken;
+	const apiUrl = cliApiUrl || config?.apiUrl;
+
+	if (!username || !apiToken) {
+		log.error('Authentication required. Either:');
+		log.error('  1. Run "testledger login" to store credentials');
+		log.error('  2. Set TESTLEDGER_USERNAME and TESTLEDGER_API_TOKEN env vars');
+		log.error('  3. Use --username and --api-token flags');
 		process.exit(1);
 	}
 
 	const projectId = options.projectId
 		? parseInt(options.projectId, 10)
-		: config.projectId;
+		: (process.env.TESTLEDGER_PROJECT_ID ? parseInt(process.env.TESTLEDGER_PROJECT_ID, 10) : config?.projectId);
 
 	if (!projectId) {
 		log.error('Project ID is required. Use --project-id <id> or set it with "testledger login"');
@@ -59,7 +76,7 @@ export async function runCommand(
 	const spinner = createSpinner('Fetching flaky and quarantined tests...').start();
 
 	try {
-		const client = new APIClient();
+		const client = new APIClient(apiUrl, username, apiToken);
 		const flakyMode = options.flakyMode || 'skip';
 
 		// Fetch orchestration config for flaky/quarantine info

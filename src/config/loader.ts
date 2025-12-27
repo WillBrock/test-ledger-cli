@@ -30,6 +30,23 @@ const config = new Conf<StoredConfig>({
 });
 
 export function getConfig(): TestLedgerConfig | null {
+	// Check environment variables first (for CI environments)
+	const envUsername = process.env.TESTLEDGER_USERNAME;
+	const envApiToken = process.env.TESTLEDGER_API_TOKEN;
+	const envProjectId = process.env.TESTLEDGER_PROJECT_ID;
+	const envApiUrl = process.env.TESTLEDGER_API_URL;
+
+	// If env vars are set, use them
+	if (envUsername && envApiToken) {
+		return {
+			apiUrl: envApiUrl || DEFAULT_API_URL,
+			username: envUsername,
+			apiToken: envApiToken,
+			projectId: envProjectId ? parseInt(envProjectId, 10) : undefined
+		};
+	}
+
+	// Fall back to stored config
 	const username = config.get('username');
 	const apiToken = config.get('apiToken');
 

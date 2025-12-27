@@ -6,18 +6,22 @@ export class APIClient {
 	private authHeader: string;
 
 	constructor(apiUrl?: string, username?: string, apiToken?: string) {
+		// If credentials provided directly, use them
+		if (username && apiToken) {
+			this.apiUrl = apiUrl || 'https://app-api.testledger.dev';
+			this.authHeader = `Basic ${Buffer.from(`${username}:${apiToken}`).toString('base64')}`;
+			return;
+		}
+
+		// Otherwise fall back to config
 		const config = getConfig();
 
-		if (!config && (!username || !apiToken)) {
+		if (!config) {
 			throw new Error('Not authenticated. Run "testledger login" first.');
 		}
 
-		this.apiUrl = apiUrl || config?.apiUrl || 'https://app-api.testledger.dev';
-		const user = username || config?.username || '';
-		const token = apiToken || config?.apiToken || '';
-
-		// Basic auth: base64(username:apiToken)
-		this.authHeader = `Basic ${Buffer.from(`${user}:${token}`).toString('base64')}`;
+		this.apiUrl = apiUrl || config.apiUrl || 'https://app-api.testledger.dev';
+		this.authHeader = `Basic ${Buffer.from(`${config.username}:${config.apiToken}`).toString('base64')}`;
 	}
 
 	private async request<T>(
