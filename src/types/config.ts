@@ -9,6 +9,7 @@ export interface SkipSpec {
 	filepath?: string;
 	reason: 'flaky' | 'quarantined';
 	flaky_count?: number;
+	flaky_percent?: number;
 	total_runs?: number;
 	run_title?: string;
 	version?: string;
