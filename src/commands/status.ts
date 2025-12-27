@@ -67,7 +67,8 @@ export async function statusCommand(options: StatusOptions): Promise<void> {
 			if (flakySpecs.length > 0) {
 				console.log(chalk.yellow('\n  Flaky:'));
 				for (const spec of flakySpecs.slice(0, 15)) {
-					console.log(`    ${chalk.yellow('~')} ${spec.spec_file} (${spec.flaky_count} occurrences)`);
+					const percent = spec.flaky_percent ? `, ${spec.flaky_percent}%` : '';
+					console.log(`    ${chalk.yellow('~')} ${spec.spec_file} (${spec.flaky_count} occurrences${percent})`);
 				}
 				if (flakySpecs.length > 15) {
 					console.log(chalk.gray(`    ... and ${flakySpecs.length - 15} more`));
