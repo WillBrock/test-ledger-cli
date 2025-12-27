@@ -1,6 +1,6 @@
 # @testledger/cli
 
-Test orchestration CLI for Test Ledger - skip flaky tests, parallel execution, and smart load balancing.
+Test orchestration CLI for Test Ledger - automatically skip flaky and quarantined tests.
 
 ## Installation
 
@@ -25,9 +25,8 @@ testledger run --project-id 123 -- npx wdio run wdio.conf.js
 
 - **Skip Flaky Tests**: Automatically skip tests that have been flagged as flaky in Test Ledger
 - **Quarantine Tests**: Skip tests that are quarantined/broken
-- **Parallel Execution**: Distribute tests across CI nodes with server-side orchestration
-- **Load Balancing**: Duration-based load balancing for optimal CI performance
 - **Multi-Framework**: Supports WebDriverIO, Playwright, and Cypress
+- **Flaky Mode Options**: Choose to skip, warn, or fail on flaky tests
 
 ## Commands
 
@@ -58,16 +57,16 @@ Options:
 
 ### `testledger run`
 
-Run tests with orchestration features.
+Run tests with automatic flaky/quarantine test skipping.
 
 ```bash
 # Basic usage - skip flaky tests
 testledger run --project-id 123 -- npx wdio run wdio.conf.js
 
 # With flaky mode options
-testledger run --project-id 123 --flaky-mode=skip -- npx wdio
-testledger run --project-id 123 --flaky-mode=warn -- npx wdio
-testledger run --project-id 123 --flaky-mode=fail -- npx wdio
+testledger run --project-id 123 --flaky-mode=skip -- npx wdio   # Skip flaky tests (default)
+testledger run --project-id 123 --flaky-mode=warn -- npx wdio   # Run flaky tests, warn on failure
+testledger run --project-id 123 --flaky-mode=fail -- npx wdio   # Run flaky tests normally
 
 # Include quarantined tests
 testledger run --project-id 123 --include-quarantined -- npx wdio
@@ -81,57 +80,35 @@ Options:
 - `-v, --version <version>` - App version
 - `--flaky-mode <mode>` - How to handle flaky tests: `skip`, `warn`, `fail` (default: `skip`)
 - `--include-quarantined` - Run quarantined tests anyway
-- `--parallel` - Enable server-side orchestration
-- `--session-id <id>` - Orchestration session ID (for parallel mode)
-- `--node-id <id>` - CI node identifier (for parallel mode)
-- `--batch-size <size>` - Number of specs to claim per request (default: 10)
 - `--framework <framework>` - Force framework: `wdio`, `playwright`, `cypress`
 - `--dry-run` - Show what would be excluded without running tests
 
-### `testledger orchestrate`
+## Parallel Execution
 
-Manage parallel test orchestration sessions.
+For parallel test execution, use your test framework's built-in sharding. The CLI will apply the same flaky/quarantine exclusions to each shard.
+
+### WebDriverIO with Sharding
 
 ```bash
-# Create a new session
-testledger orchestrate create --project-id 123 --specs "tests/**/*.spec.js" --nodes 3
+# Shard 1 of 3
+testledger run --project-id 123 -- npx wdio run wdio.conf.js --shard 1/3
 
-# Check session status
-testledger orchestrate status <session-id>
+# Shard 2 of 3
+testledger run --project-id 123 -- npx wdio run wdio.conf.js --shard 2/3
 
-# Close a session
-testledger orchestrate close <session-id>
+# Shard 3 of 3
+testledger run --project-id 123 -- npx wdio run wdio.conf.js --shard 3/3
 ```
 
-## Parallel Execution (CI Integration)
-
-### GitHub Actions
+### GitHub Actions Example
 
 ```yaml
 jobs:
-  setup:
-    runs-on: ubuntu-latest
-    outputs:
-      session_id: ${{ steps.create.outputs.session_id }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-      - run: npm ci
-      - run: npm install -g @testledger/cli
-      - name: Create orchestration session
-        id: create
-        run: |
-          testledger login --username ${{ secrets.TESTLEDGER_USER }} --api-token ${{ secrets.TESTLEDGER_TOKEN }}
-          testledger orchestrate create --project-id 123 --specs "tests/**/*.spec.js" --nodes 3
-
   test:
-    needs: setup
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        node: [1, 2, 3]
+        shard: [1, 2, 3]
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -142,66 +119,7 @@ jobs:
       - name: Run tests
         run: |
           testledger login --username ${{ secrets.TESTLEDGER_USER }} --api-token ${{ secrets.TESTLEDGER_TOKEN }}
-          testledger run \
-            --project-id 123 \
-            --parallel \
-            --session-id=${{ needs.setup.outputs.session_id }} \
-            --node-id=node-${{ matrix.node }} \
-            --flaky-mode=skip \
-            -- npx wdio run wdio.conf.js
-```
-
-### Jenkins
-
-```groovy
-pipeline {
-    agent any
-
-    stages {
-        stage('Setup') {
-            steps {
-                sh 'npm install -g @testledger/cli'
-                sh 'testledger login --username $TESTLEDGER_USER --api-token $TESTLEDGER_TOKEN'
-                script {
-                    def output = sh(
-                        script: 'testledger orchestrate create --project-id 123 --specs "tests/**/*.spec.js" --nodes 3',
-                        returnStdout: true
-                    )
-                    env.SESSION_ID = output.find(/session_id::(.+)/) { it[1] }
-                }
-            }
-        }
-
-        stage('Test') {
-            parallel {
-                stage('Node 1') {
-                    steps {
-                        sh """
-                            testledger run \
-                                --project-id 123 \
-                                --parallel \
-                                --session-id=${SESSION_ID} \
-                                --node-id=node-1 \
-                                -- npx wdio
-                        """
-                    }
-                }
-                stage('Node 2') {
-                    steps {
-                        sh """
-                            testledger run \
-                                --project-id 123 \
-                                --parallel \
-                                --session-id=${SESSION_ID} \
-                                --node-id=node-2 \
-                                -- npx wdio
-                        """
-                    }
-                }
-            }
-        }
-    }
-}
+          testledger run --project-id 123 -- npx wdio run wdio.conf.js --shard ${{ matrix.shard }}/3
 ```
 
 ## Framework Support

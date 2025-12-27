@@ -11,10 +11,6 @@ interface RunOptions {
 	version?: string;
 	flakyMode?: 'skip' | 'warn' | 'fail';
 	includeQuarantined?: boolean;
-	parallel?: boolean;
-	sessionId?: string;
-	nodeId?: string;
-	batchSize?: string;
 	framework?: string;
 	dryRun?: boolean;
 }
@@ -60,49 +56,11 @@ export async function runCommand(
 		log.info(`Detected framework: ${chalk.cyan(adapter.name)}`);
 	}
 
-	const spinner = createSpinner('Fetching orchestration config...').start();
+	const spinner = createSpinner('Fetching flaky and quarantined tests...').start();
 
 	try {
 		const client = new APIClient();
 		const flakyMode = options.flakyMode || 'skip';
-
-		// Build exclusion config
-		const exclusions: ExclusionConfig = {
-			specsToSkip: [],
-			quarantinedSpecs: [],
-			flakySpecs: []
-		};
-
-		// In parallel mode, claim specs from session
-		let claimedSpecs: string[] = [];
-		if (options.parallel) {
-			if (!options.sessionId) {
-				spinner.fail('--session-id is required for parallel mode');
-				process.exit(1);
-			}
-			if (!options.nodeId) {
-				spinner.fail('--node-id is required for parallel mode');
-				process.exit(1);
-			}
-
-			spinner.text = 'Claiming specs from orchestration session...';
-			const batchSize = parseInt(options.batchSize || '10', 10);
-			const claimResponse = await client.claimSpecs(
-				options.sessionId,
-				options.nodeId,
-				batchSize
-			);
-
-			claimedSpecs = claimResponse.claimed_specs;
-
-			if (claimedSpecs.length === 0) {
-				spinner.succeed('No more specs to run');
-				log.info('All specs have been claimed by other nodes');
-				process.exit(0);
-			}
-
-			log.info(`Claimed ${claimedSpecs.length} specs (${claimResponse.remaining_count} remaining)`);
-		}
 
 		// Fetch orchestration config for flaky/quarantine info
 		const orchConfig = await client.getOrchestrationConfig(projectId, {
@@ -111,9 +69,15 @@ export async function runCommand(
 			includeQuarantined: !options.includeQuarantined
 		});
 
-		spinner.succeed('Fetched orchestration config');
+		spinner.succeed('Fetched test configuration');
 
 		// Build exclusions based on flaky mode
+		const exclusions: ExclusionConfig = {
+			specsToSkip: [],
+			quarantinedSpecs: [],
+			flakySpecs: []
+		};
+
 		if (flakyMode === 'skip') {
 			const flakySpecs = orchConfig.skip_specs
 				.filter(s => s.reason === 'flaky')
@@ -146,24 +110,6 @@ export async function runCommand(
 
 		const finalCommand = [...testCommand, ...excludeArgs];
 
-		// In parallel mode, add spec filter to only run claimed specs
-		if (options.parallel && claimedSpecs.length > 0) {
-			// For WDIO, we can use --spec to specify which specs to run
-			if (adapter.name === 'webdriverio') {
-				for (const spec of claimedSpecs) {
-					finalCommand.push('--spec', spec);
-				}
-			}
-			// For Playwright, use file arguments
-			else if (adapter.name === 'playwright') {
-				finalCommand.push(...claimedSpecs);
-			}
-			// For Cypress, use --spec
-			else if (adapter.name === 'cypress') {
-				finalCommand.push('--spec', claimedSpecs.join(','));
-			}
-		}
-
 		console.log(chalk.gray(`Running: ${finalCommand.join(' ')}`));
 		console.log('');
 
@@ -184,22 +130,7 @@ export async function runCommand(
 			cwd: process.cwd()
 		});
 
-		child.on('close', async (code) => {
-			// Report completion in parallel mode
-			if (options.parallel && options.sessionId) {
-				try {
-					for (const spec of claimedSpecs) {
-						await client.completeSpec(
-							options.sessionId,
-							spec,
-							code === 0 ? 'passed' : 'failed'
-						);
-					}
-				} catch (error) {
-					log.warn('Failed to report completion to orchestration service');
-				}
-			}
-
+		child.on('close', (code) => {
 			// Handle flaky mode warnings
 			if (code !== 0 && flakyMode === 'warn') {
 				log.warn('Tests failed but running in warn mode - check for flaky tests');

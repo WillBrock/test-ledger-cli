@@ -1,10 +1,5 @@
 import { getConfig } from '../config/loader.js';
-import type {
-	OrchestrationConfigResponse,
-	OrchestrationSessionResponse,
-	ClaimResponse,
-	SessionStatusResponse
-} from '../types/config.js';
+import type { OrchestrationConfigResponse } from '../types/config.js';
 
 export class APIClient {
 	private apiUrl: string;
@@ -76,86 +71,6 @@ export class APIClient {
 		return this.request<OrchestrationConfigResponse>(
 			`/orchestration/config?${params.toString()}`
 		);
-	}
-
-	/**
-	 * Create orchestration session for parallel execution
-	 */
-	async createSession(
-		projectId: number,
-		specs: string[],
-		options: {
-			version?: string;
-			nodeCount?: number;
-			strategy?: 'round_robin' | 'duration_based';
-		} = {}
-	): Promise<OrchestrationSessionResponse> {
-		return this.request<OrchestrationSessionResponse>('/orchestration/session', {
-			method: 'POST',
-			body: JSON.stringify({
-				project_id: projectId,
-				total_specs: specs,
-				version: options.version,
-				node_count: options.nodeCount || 1,
-				strategy: options.strategy || 'round_robin'
-			})
-		});
-	}
-
-	/**
-	 * Claim a batch of specs for parallel execution
-	 */
-	async claimSpecs(
-		sessionId: string,
-		nodeId: string,
-		batchSize: number = 10
-	): Promise<ClaimResponse> {
-		return this.request<ClaimResponse>('/orchestration/claim', {
-			method: 'POST',
-			body: JSON.stringify({
-				session_id: sessionId,
-				node_id: nodeId,
-				batch_size: batchSize
-			})
-		});
-	}
-
-	/**
-	 * Mark a spec as completed
-	 */
-	async completeSpec(
-		sessionId: string,
-		specFile: string,
-		result: 'passed' | 'failed' | 'skipped',
-		duration?: number
-	): Promise<{ status: string }> {
-		return this.request('/orchestration/complete', {
-			method: 'POST',
-			body: JSON.stringify({
-				session_id: sessionId,
-				spec_file: specFile,
-				result,
-				duration
-			})
-		});
-	}
-
-	/**
-	 * Get session status
-	 */
-	async getSessionStatus(sessionId: string): Promise<SessionStatusResponse> {
-		return this.request<SessionStatusResponse>(
-			`/orchestration/status/${sessionId}`
-		);
-	}
-
-	/**
-	 * Close orchestration session
-	 */
-	async closeSession(sessionId: string): Promise<{ status: string }> {
-		return this.request(`/orchestration/session/${sessionId}/close`, {
-			method: 'POST'
-		});
 	}
 
 	/**
