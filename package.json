@@ -14,7 +14,7 @@
     "test": "jest",
     "lint": "eslint src/",
     "prepublishOnly": "npm run build",
-    "release": "release-it --github.release"
+    "release": "release-it"
   },
   "keywords": [
     "test",
