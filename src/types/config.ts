@@ -4,15 +4,18 @@ export interface TestLedgerConfig {
 	projectId?: number;
 }
 
+// Health status from test_health materialized view
+export type HealthStatus = 'healthy' | 'flaky' | 'broken' | 'disabled' | 'insufficient_data';
+
 export interface SkipSpec {
 	spec_file: string;
 	filepath?: string;
-	reason: 'flaky' | 'quarantined';
-	flaky_count?: number;
-	flaky_percent?: number;
-	total_runs?: number;
-	run_title?: string;
-	version?: string;
+	reason: HealthStatus;
+	pass_rate: number;
+	fail_rate: number;
+	total_runs: number;
+	action: 'run' | 'skip';
+	skip_ai: boolean;
 }
 
 export interface OrchestrationConfigResponse {
@@ -21,6 +24,9 @@ export interface OrchestrationConfigResponse {
 	project_id: number;
 	counts: {
 		flaky: number;
-		quarantined: number;
+		broken: number;
+		disabled: number;
+		skip_ai: number;
+		total: number;
 	};
 }

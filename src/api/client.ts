@@ -48,17 +48,17 @@ export class APIClient {
 	}
 
 	/**
-	 * Get orchestration config (flaky + quarantined specs to skip)
+	 * Get orchestration config with test health data
+	 * Returns specs to skip (flaky/broken/disabled) based on pass rate thresholds
 	 */
 	async getOrchestrationConfig(
 		projectId: number,
 		options: {
 			version?: string;
 			includeFlaky?: boolean;
-			includeQuarantined?: boolean;
-			minFlakyCount?: number;
-			minFlakyPercent?: number;
-			minTotalRuns?: number;
+			includeBroken?: boolean;
+			minRuns?: number;
+			aiSkipThreshold?: number;
 		} = {}
 	): Promise<OrchestrationConfigResponse> {
 		const params = new URLSearchParams({
@@ -71,17 +71,14 @@ export class APIClient {
 		if (options.includeFlaky !== undefined) {
 			params.append('include_flaky', options.includeFlaky.toString());
 		}
-		if (options.includeQuarantined !== undefined) {
-			params.append('include_quarantined', options.includeQuarantined.toString());
+		if (options.includeBroken !== undefined) {
+			params.append('include_broken', options.includeBroken.toString());
 		}
-		if (options.minFlakyCount !== undefined) {
-			params.append('min_flaky_count', options.minFlakyCount.toString());
+		if (options.minRuns !== undefined) {
+			params.append('min_runs', options.minRuns.toString());
 		}
-		if (options.minFlakyPercent !== undefined) {
-			params.append('min_flaky_percent', options.minFlakyPercent.toString());
-		}
-		if (options.minTotalRuns !== undefined) {
-			params.append('min_total_runs', options.minTotalRuns.toString());
+		if (options.aiSkipThreshold !== undefined) {
+			params.append('ai_skip_threshold', options.aiSkipThreshold.toString());
 		}
 
 		return this.request<OrchestrationConfigResponse>(
